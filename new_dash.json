@@ -1,0 +1,539 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 203,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "b598ab7e-e69e-4814-b0e6-26ad2b586eeb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 14,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*DECLINED.*/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "DECLINED"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*MERGED.*/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MERGED"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*OPEN.*/"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "OPEN"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "timezone": [""],
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "b598ab7e-e69e-4814-b0e6-26ad2b586eeb"
+          },
+          "query": "import \"strings\"\r\n\r\nfrom(bucket: \"stash-pr\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"gsdk\")\r\n  |> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\")\r\n  |> group(columns: [\"project\"])\r\n  |> map(fn: (r) => ({r with _time: time(v: strings.split(v:r.updated_date,t: \" \")[0])}))\r\n  |> group(columns: [\"state\"])\r\n  |> aggregateWindow(every: 24h, fn:count , column: \"pull_request_id\",offset: -24h)\r\n  |> timeShift(duration: -24h, columns: [\"_time\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Pull Requests By State",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "b598ab7e-e69e-4814-b0e6-26ad2b586eeb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "color-text"
+            },
+            "filterable": false,
+            "inspect": true
+          },
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.filterable",
+                "value": true
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Target Branch"
+            },
+            "properties": [
+              {
+                "id": "custom.filterable",
+                "value": true
+              },
+              {
+                "id": "custom.width",
+                "value": 138
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pull Request Id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "${__data.fields[\"Pull Request Id\"]}",
+                    "url": "https://stash.silabs.com/projects/GSDK/repos/gsdk/pull-requests/${__data.fields[\"Pull Request Id\"]}/overview"
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 123
+              },
+              {
+                "id": "custom.filterable",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Created Date"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 162
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Branch Name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 287
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Title"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 344
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": true,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Created Date"
+          }
+        ]
+      },
+      "pluginVersion": "9.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "b598ab7e-e69e-4814-b0e6-26ad2b586eeb"
+          },
+          "query": "from(bucket: \"stash-pr\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"gsdk\")\r\n  |> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\")\r\n  |> group(columns: [\"project\"])\r\n  |> drop(columns:[\"_time\", \"_start\", \"_stop\", \"_measurement\", \"pull_request_id\", \"project\"])\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "Pull Request Summary",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "author": 1,
+              "created_date": 6,
+              "pull_Request_id": 0,
+              "source_branch": 2,
+              "state": 3,
+              "target_branch": 5,
+              "title": 4,
+              "updated_date": 7
+            },
+            "renameByName": {
+              "author": "Author",
+              "created_date": "Created Date",
+              "pull_Request_id": "Pull Request Id",
+              "source_branch": "Branch Name",
+              "state": "State",
+              "target_branch": "Target Branch",
+              "title": "Title",
+              "updated_date": "Updated Date"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "b598ab7e-e69e-4814-b0e6-26ad2b586eeb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "PR-${__data.fields.pull_Request_id}",
+              "url": "https://stash.silabs.com/projects/GSDK/repos/gsdk/pull-requests/${__data.fields.pull_Request_id}/overview"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "duration"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ns"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pull_Request_id"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 0
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "b598ab7e-e69e-4814-b0e6-26ad2b586eeb"
+          },
+          "query": "import \"strings\"\r\nimport \"date\"\r\nfrom(bucket: \"stash-pr\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"gsdk\")\r\n  |> pivot(columnKey:[\"_field\"] , rowKey: [\"_time\"], valueColumn: \"_value\" )\r\n  |> filter(fn: (r) => r[\"state\"] == \"MERGED\")\r\n  |> group(columns: [\"project\"])\r\n  |> keep(columns: [\"pull_Request_id\", \"created_date\", \"updated_date\"])\r\n\t|> map(fn: (r) => ({   r with updated_date: time( v: strings.joinStr(arr: [strings.joinStr(arr: [strings.split(v:r.updated_date,t: \" \")[0], strings.split(v:r.updated_date,t: \" \")[1]], v: \"T\"), \"Z\"], v: \".999999999\"))}))\r\n\t|> map(fn: (r) => ({   r with created_date: time( v: strings.joinStr(arr: [strings.joinStr(arr: [strings.split(v:r.created_date,t: \" \")[0], strings.split(v:r.created_date,t: \" \")[1]], v: \"T\"), \"Z\"], v: \".999999999\"))}))\r\n  |> map(fn: (r) => ({r with duration: uint(v: r.updated_date ) - uint(v: r.created_date ) }))\r\n ",
+          "refId": "A"
+        }
+      ],
+      "title": "Merged Pull Requests Age",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "other",
+                "targetField": "pull_Request_id"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ],
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "New dashboard",
+  "uid": "OFqBLfTVk",
+  "version": 25,
+  "weekStart": ""
+}
